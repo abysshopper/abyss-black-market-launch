@@ -2,6 +2,30 @@
 
 Claude Code and Codex harness for designing and simulating oracle-enabled Abyss token launches.
 
+![Black Market — token launches powered by Abyss](assets/black-market-og.png)
+
+## Start here
+
+Clone this harness, start Claude Code or Codex from the cloned directory, and paste the following prompt. Replace `/absolute/path/to/your/repository` with the local repository that contains the Abyss-compatible launch contracts and deployment configuration.
+
+```text
+Use the abyss-token-launch skill to guide me through designing and simulating a token launch against the repository at /absolute/path/to/your/repository.
+
+Begin by inspecting that repository's launch contracts, SDK, deployment records, registered oracle configurations, fee tiers, templates, tests, and pinned toolchain. Then walk me through each decision rather than assuming defaults:
+
+1. Explain Standard Oracle versus Quote Oracle pool accounting and ask me which one I want. Never offer a non-oracle pool.
+2. Explain a standard launch versus each custom launch design actually supported by the repository, then ask me to choose.
+3. Collect every required token, quote asset, fee, distribution, and creator parameter.
+4. Look up the current USD price of the exact quote-token contract, show the source and UTC timestamp, and ask me to confirm it. If no reliable source exists, ask me for the price.
+5. Recommend a launch near $5,000 FDV, derive the exact tick, liquidity, and effective FDV with repository-native integer math, and ask me to confirm the complete parameter table.
+6. Ask whether I want an initial buy. Default to slippage protection, but let me explicitly ignore slippage after warning me and confirming that the repository supports an unbounded buy.
+7. Generate rigorous repository-native tests and launch artifacts, run the focused tests and local or fork simulation, and report the observed results.
+
+Do not broadcast any transaction, request or inspect a private key or keystore, ask for wallet approval, or add a broadcast option. Stop after successful simulation.
+```
+
+The agent should begin with the pool-profile explanation and first question. It should not generate launch artifacts until the design, live quote price, derived pricing, and initial-buy policy have been explicitly confirmed.
+
 The wizard walks users through:
 
 - Standard Oracle versus Quote Oracle pool accounting
@@ -18,29 +42,23 @@ This harness generates, tests, and simulates launches. It never broadcasts trans
 
 ## Use with Codex
 
-Clone the repository and start Codex from its root. `AGENTS.md` directs Codex to the canonical skill at:
+Clone the repository, start Codex from its root, and paste the complete prompt in [Start here](#start-here). `AGENTS.md` directs Codex to the canonical skill at:
 
 ```text
 .agents/skills/abyss-token-launch/SKILL.md
 ```
 
-Ask it to guide a token launch against a local Abyss-compatible repository. Provide that repository's path when requested.
-
-Example:
-
-```text
-Guide me through designing and simulating an Abyss token launch using the repository at /path/to/repository.
-```
+The prompt's absolute target-repository path tells the harness where to inspect and generate launch artifacts.
 
 ## Use with Claude Code
 
-Start Claude Code from the repository root. `CLAUDE.md` loads the shared instructions, and the Claude skill is available at:
+Start Claude Code from the repository root and paste the complete prompt in [Start here](#start-here). `CLAUDE.md` loads the shared instructions, and the Claude skill path is a symlink to the same canonical source:
 
 ```text
 .claude/skills/abyss-token-launch/SKILL.md
 ```
 
-Use the same launch request shown above.
+Claude Code and Codex therefore follow one workflow rather than duplicated instructions.
 
 ## Workflow
 
