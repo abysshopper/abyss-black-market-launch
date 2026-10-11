@@ -1,1 +1,0 @@
-../../../.agents/skills/abyss-token-launch/SKILL.md

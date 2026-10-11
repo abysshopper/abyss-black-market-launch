@@ -1,80 +1,88 @@
+![Abyss](assets/abyss-social.webp)
+
 # Abyss Black Market Launch
 
-Claude Code and Codex harness for designing and simulating oracle-enabled Abyss token launches.
+One conversational launch skill for **Node/TypeScript or Python**. Your agent walks
+you through token design, quote pricing, liquidity, fees, opening buys, unsigned
+planning, and—only when you authorize it—execution and recovery with the Abyss SDK.
 
-![Black Market — token launches powered by Abyss](assets/black-market-og.png)
+## Install locally
 
-## Start here
+Keep this as a separate checkout. Generate your agent's instructions here, then
+point the skill at your SDK checkout or application workspace. You do not need
+the Solidity repository just to use the SDK, and this avoids overwriting an
+application's existing agent rules.
 
-Clone this harness, start Claude Code or Codex from the cloned directory, and paste the following prompt. Replace `/absolute/path/to/your/repository` with the local repository that contains the Abyss-compatible launch contracts and deployment configuration.
+Requires Node 24+, pnpm, Python 3.10+ for the local signing helper, and Claude Code
+or Codex. Install your chosen SDK using its README:
+[Node](https://github.com/abysshopper/black-market-node-sdk)
+· [Python](https://github.com/abysshopper/black-market-python-sdk).
 
-```text
-Use the abyss-token-launch skill to guide me through designing and simulating a token launch against the repository at /absolute/path/to/your/repository.
-
-Begin by inspecting that repository's launch contracts, SDK, deployment records, registered oracle configurations, fee tiers, templates, tests, and pinned toolchain. Then walk me through each decision rather than assuming defaults:
-
-1. Explain Standard Oracle versus Quote Oracle pool accounting and ask me which one I want. Never offer a non-oracle pool.
-2. Explain a standard launch versus each custom launch design actually supported by the repository, then ask me to choose.
-3. Collect every required token, quote asset, fee, distribution, and creator parameter.
-4. Look up the current USD price of the exact quote-token contract, show the source and UTC timestamp, and ask me to confirm it. If no reliable source exists, ask me for the price.
-5. Recommend a launch near $5,000 FDV, derive the exact tick, liquidity, and effective FDV with repository-native integer math, and ask me to confirm the complete parameter table.
-6. Ask whether I want an initial buy. Default to slippage protection, but let me explicitly ignore slippage after warning me and confirming that the repository supports an unbounded buy.
-7. Generate rigorous repository-native tests and launch artifacts, run the focused tests and local or fork simulation, and report the observed results.
-
-Do not broadcast any transaction, request or inspect a private key or keystore, ask for wallet approval, or add a broadcast option. Stop after successful simulation.
+```sh
+git clone https://github.com/abysshopper/abyss-black-market-launch.git
+cd abyss-black-market-launch
+pnpm dlx rulesync@27.0.0 generate
+claude
+# Or start: codex
 ```
 
-The agent should begin with the pool-profile explanation and first question. It should not generate launch artifacts until the design, live quote price, derived pricing, and initial-buy policy have been explicitly confirmed.
-
-The wizard walks users through:
-
-- Standard Oracle versus Quote Oracle pool accounting
-- Standard versus supported custom launch templates
-- Token name, ticker, supply, decimals, quote asset, fee tier, and fee distribution
-- Current quote-token USD price confirmation
-- Launch pricing near a recommended $5,000 fully diluted valuation
-- Optional initial buy with protected or explicitly unbounded slippage
-- Repository-native launch artifacts and rigorous contract, SDK, lifecycle, and fork tests
-
-## Safety boundary
-
-This harness generates, tests, and simulates launches. It never broadcasts transactions, requests private keys, opens keystores, or asks for wallet approval.
-
-## Use with Codex
-
-Clone the repository, start Codex from its root, and paste the complete prompt in [Start here](#start-here). `AGENTS.md` directs Codex to the canonical skill at:
+Paste this, replacing the workspace path:
 
 ```text
-.agents/skills/abyss-token-launch/SKILL.md
+Use the abyss-token-launch skill with /absolute/path/to/my/sdk-or-app.
+Ask whether I want Node or Python. Walk me through the supported token and
+reward designs, markets, quotes, fees, and opening buys. Fetch and explain
+quote pricing, derive exact liquidity near a $5,000 starting valuation,
+and let me confirm the economics. Prepare an unsigned plan first.
+If I choose to launch, prepare a locally reviewed execution runner and a
+password-protected keystore command I can run in my own terminal.
+Never ask for passwords or private keys in chat.
 ```
 
-The prompt's absolute target-repository path tells the harness where to inspect and generate launch artifacts.
+## What the skill does
 
-## Use with Claude Code
+1. Uses the selected SDK's current profiles, public APIs, and integer pricing
+   helpers—not copied ABIs or addresses.
+2. Asks for design choices in small groups and explains quote-price provenance,
+   token allocation, rounded opening valuation, fee splits, buy protection, and gas.
+3. Builds and proves the exact launch; unavailable or failed proof stops execution.
+4. Presents the final economics for confirmation before signing. SDK example
+   `--broadcast` commands skip this prompt, so the skill adds a pre-signature
+   review gate to your runner rather than treating a prior dry-run as approval.
+5. Executes only with authorization, records receipts, verifies activation and
+   metadata, and resumes the original launch after interruption instead of relaunching.
 
-Start Claude Code from the repository root and paste the complete prompt in [Start here](#start-here). `CLAUDE.md` loads the shared instructions, and the Claude skill path is a symlink to the same canonical source:
+## Signing in your own terminal
 
-```text
-.claude/skills/abyss-token-launch/SKILL.md
+Prefer a **password-protected V3 keystore**, stored outside the repository with
+owner-only permissions (`chmod 600`). Configure non-secret RPC/API settings in your
+workspace; leave signer keys/passwords out of `.env`. Review the skill-generated
+runner before supplying a signer: it receives the ability to spend your wallet.
+
+From your workspace, use the helper's absolute path and your reviewed runner:
+
+```sh
+python /path/to/abyss-black-market-launch/scripts/run-launch.py \
+  --sdk node --script examples/launch-my-token.ts \
+  --keystore /path/to/wallet.json
 ```
 
-Claude Code and Codex therefore follow one workflow rather than duplicated instructions.
+For Python, activate the SDK's virtual environment and use `--sdk python` with a
+`.py` runner. No mode flag means **unsigned dry-run**. After final review, add
+`--broadcast`; after interruption, use `--resume "launch-results/<original-run>"`
+instead. Both write modes require local confirmation and may spend real funds.
 
-## Workflow
+The helper prompts without echo for the password and passes signer settings only
+to the local SDK process. Run it yourself, **not inside an agent-controlled terminal**.
+`--private-key` replaces `--keystore` with hidden local key entry when necessary;
+never paste the key into chat or put it in command arguments. Process environments
+are not a vault: trust the runner and machine, and use a dedicated funded wallet.
+Keep private recovery files; never commit or share them.
 
-The harness instructs the agent to:
+## Maintain the skill
 
-1. Inspect the target repository's contracts, SDK, deployment records, registered templates, fee tiers, oracle configuration, and toolchain.
-2. Explain the supported design choices and collect every required launch parameter.
-3. Retrieve and confirm the quote token's current USD price, or request a user-supplied price when no reliable source exists.
-4. Derive the launch tick, liquidity, effective FDV, initial-buy estimate, and execution limits using repository-native integer math.
-5. Present one complete confirmation record.
-6. Generate parameter preparation, launch simulation, and test artifacts in the target repository.
-7. Run focused tests, a full local lifecycle, and a canonical fork simulation where supported.
-8. Stop without broadcasting.
-
-The target repository remains authoritative. The harness does not hard-code a particular deployment, ABI, address set, or toolchain.
-
-## Slippage
-
-Slippage protection is the default for a nonzero initial buy. A user may explicitly ignore it after acknowledging that execution can receive materially less than the estimate. The generated request uses unbounded values only when the target contracts support them and the user confirms the choice.
+Edit `.rulesync/rules/` and `.rulesync/skills/`, then regenerate with the pinned
+command above. `AGENTS.md`, `CLAUDE.md`, `.agents/`, and `.claude/` are generated
+locally and ignored, not separate maintained sources. To update an existing
+checkout, run `git pull --ff-only` and regenerate. Run helper checks with
+`python -m unittest discover -s tests`.

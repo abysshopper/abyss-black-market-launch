@@ -1,0 +1,14 @@
+# Generated locally from .rulesync/; do not maintain duplicate agent instructions.
+/AGENTS.md
+/CLAUDE.md
+/.agents/
+/.claude/
+
+# Local launch secrets and retained execution artifacts.
+.env
+.env.*
+!.env.example
+*.keystore
+launch-results/
+__pycache__/
+.venv/
