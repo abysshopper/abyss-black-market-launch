@@ -30,10 +30,12 @@ Paste this, replacing the workspace path:
 
 ```text
 Use the abyss-token-launch skill with /absolute/path/to/my/sdk-or-app.
-Ask whether I want Node or Python. Walk me through the supported token and
-reward designs, markets, quotes, fees, and opening buys. Fetch and explain
-quote pricing, derive exact liquidity near a $5,000 starting valuation,
-and let me confirm the economics. Prepare an unsigned plan first.
+Use my explicit SDK preference or the workspace's installed SDK; otherwise
+choose an available supported runtime without asking me about languages.
+Walk me through the supported token and reward designs, markets, quotes,
+hooks, fees, and opening buys. Fetch and explain quote pricing, derive exact
+liquidity near a $5,000 starting valuation, and let me confirm the economics.
+Prepare an unsigned plan first.
 If I choose to launch, prepare a locally reviewed execution runner and a
 password-protected keystore command I can run in my own terminal.
 Never ask for passwords or private keys in chat.
@@ -43,14 +45,34 @@ Never ask for passwords or private keys in chat.
 
 1. Uses the selected SDK's current profiles, public APIs, and integer pricing
    helpers—not copied ABIs or addresses.
-2. Asks for design choices in small groups and explains quote-price provenance,
-   token allocation, rounded opening valuation, fee splits, buy protection, and gas.
+2. Reuses supplied parameters and asks only for missing material choices; explains
+   quote provenance, token allocation, valuation, fee splits, buy protection and gas.
 3. Builds and proves the exact launch; unavailable or failed proof stops execution.
 4. Presents the final economics for confirmation before signing. SDK example
    `--broadcast` commands skip this prompt, so the skill adds a pre-signature
    review gate to your runner rather than treating a prior dry-run as approval.
 5. Executes only with authorization, records receipts, verifies activation and
    metadata, and resumes the original launch after interruption instead of relaunching.
+
+## Design and operation catalog
+
+The skill's maintained references live in this repository:
+- [Token combinations and operations](.rulesync/skills/abyss-token-launch/references/token-designs.md): token/reward matrix, market composition, constraints and operation semantics.
+- [Hooks and profile compatibility](.rulesync/skills/abyss-token-launch/references/hooks.md): canonical Abyss variants, V4 fixed/dynamic and HMM offerings, oracle and fee behavior, and live-discovery requirements.
+- [HMM strategy and fee routing](.rulesync/skills/abyss-token-launch/references/hmm.md): SDK 0.9.0+ HMM Fixed/Dynamic configuration, quote-fee diversion, inventory controls and review requirements.
+
+These are factorized reference matrices, not an assertion that every combination
+is valid or currently admitted. Installed SDK support, example coverage, workflow
+policy and live registry admission remain separate checks. The agent explains
+economic choices first and selects the SDK from your preference or workspace.
+
+The interview adapts to your brief: complete parameters go straight to mapping,
+validation and unsigned proof; exploratory requests get focused recommendations.
+Ask for a launch overview at any time, even before every field is decided. The
+agent offers it when your design is settled or you are ready to deploy, using
+tables for economics and bullets for blockers, with draft, simulated and confirmed
+values clearly distinguished. Final review and explicit live authorization remain
+required; “ready to deploy” alone is not authorization.
 
 ## Signing in your own terminal
 
